@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Klaxo — Envoi d'un abonnement</title>
-<link rel="icon" href="https://klaxo.fr/wp-content/uploads/2026/06/cropped-cropped-logo-klaxo-rond-270x270.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -38,7 +37,12 @@
     border-bottom: 1px solid var(--klaxo-line);
   }
 
-  header img { height: 26px; display: block; }
+  .wordmark {
+    display: block;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
 
   main {
     flex: 1;
@@ -137,7 +141,7 @@
 <body>
 
 <header>
-  <img src="https://klaxo.fr/wp-content/uploads/2022/09/klaxo-logo-noir.png.webp" alt="Klaxo">
+  <span class="wordmark">Klaxo</span>
 </header>
 
 <main>
@@ -187,7 +191,7 @@
       const data = await response.json();
 
       if (response.ok) {
-        setStatus('Abonnement de l\'auto-école ' + raw + ' envoyé.', 'ok');
+        setStatus("Abonnement de l'auto-école " + raw + ' envoyé.', 'ok');
         input.value = '';
         input.focus();
       } else {
