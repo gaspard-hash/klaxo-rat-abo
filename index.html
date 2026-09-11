@@ -4,21 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Klaxo — Envoi d'un nombre</title>
+<title>Klaxo — Envoi d'un abonnement</title>
 <link rel="icon" href="https://klaxo.fr/wp-content/uploads/2026/06/cropped-cropped-logo-klaxo-rond-270x270.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
-  /* ---- Palette Klaxo : remplacez les 3 hex par ceux du site si besoin ---- */
+  /* ---- Palette Klaxo : remplacez --klaxo-accent par le hex du site ---- */
   :root {
-    --klaxo-ink:      #12161C;   /* texte, logo noir */
-    --klaxo-accent:   #F5C518;   /* couleur d'action (bouton) */
-    --klaxo-paper:    #FFFFFF;
-    --klaxo-muted:    #6B7280;
-    --klaxo-line:     #E6E8EC;
-    --klaxo-ok:       #0E7C5A;
-    --klaxo-error:    #C0392B;
+    --klaxo-ink:    #12161C;
+    --klaxo-accent: #F5C518;
+    --klaxo-paper:  #FFFFFF;
+    --klaxo-muted:  #6B7280;
+    --klaxo-line:   #E6E8EC;
+    --klaxo-ok:     #0E7C5A;
+    --klaxo-error:  #C0392B;
   }
 
   * { box-sizing: border-box; }
@@ -54,7 +54,8 @@
     font-size: 1.5rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    margin: 0 0 6px;
+    line-height: 1.25;
+    margin: 0 0 8px;
   }
 
   .lede {
@@ -62,7 +63,7 @@
     color: var(--klaxo-muted);
     font-size: 0.95rem;
     line-height: 1.6;
-    max-width: 34ch;
+    max-width: 38ch;
   }
 
   label {
@@ -73,30 +74,24 @@
     margin-bottom: 4px;
   }
 
-  #number {
+  #sellsyId {
     width: 100%;
     border: 0;
     border-bottom: 2px solid var(--klaxo-line);
     background: transparent;
     font-family: inherit;
-    font-size: clamp(3rem, 14vw, 4.5rem);
+    font-size: clamp(2.25rem, 9vw, 3.25rem);
     font-weight: 800;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.02em;
     color: var(--klaxo-ink);
     padding: 0 0 8px;
     border-radius: 0;
     transition: border-color 120ms ease;
   }
 
-  #number::placeholder { color: var(--klaxo-line); }
-  #number:focus { outline: none; border-bottom-color: var(--klaxo-accent); }
-  #number:focus-visible { outline: none; }
-
-  /* Pas de flèches natives : le champ est l'élément principal de la page */
-  #number::-webkit-outer-spin-button,
-  #number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  #number { -moz-appearance: textfield; }
+  #sellsyId::placeholder { color: var(--klaxo-line); }
+  #sellsyId:focus { outline: none; border-bottom-color: var(--klaxo-accent); }
 
   button {
     margin-top: 28px;
@@ -142,18 +137,18 @@
 <body>
 
 <header>
-  <img src="https://klaxo.fr/wp-content/uploads/2022/09/klaxo-logo-noir.png" alt="Klaxo">
+  <img src="https://klaxo.fr/wp-content/uploads/2022/09/klaxo-logo-noir.png.webp" alt="Klaxo">
 </header>
 
 <main>
   <div class="panel">
-    <h1>Envoyer un nombre</h1>
-    <p class="lede">Le nombre saisi est transmis au scénario Make de Klaxo.</p>
+    <h1>Envoyer un abonnement vers l'API Klaxo</h1>
+    <p class="lede">Saisissez l'ID Sellsy de l'auto-école : son abonnement sera transmis à l'API Klaxo.</p>
 
-    <label for="number">Nombre</label>
-    <input id="number" type="number" inputmode="decimal" step="any" placeholder="0" autofocus>
+    <label for="sellsyId">ID Sellsy</label>
+    <input id="sellsyId" type="text" inputmode="numeric" autocomplete="off" placeholder="00000000" autofocus>
 
-    <button id="send">Envoyer</button>
+    <button id="send">Envoyer l'abonnement</button>
     <p id="status" role="status" aria-live="polite"></p>
   </div>
 </main>
@@ -161,7 +156,7 @@
 <footer>Outil interne Klaxo</footer>
 
 <script>
-  const input  = document.getElementById('number');
+  const input  = document.getElementById('sellsyId');
   const button = document.getElementById('send');
   const status = document.getElementById('status');
 
@@ -171,10 +166,10 @@
   }
 
   async function send() {
-    const value = Number(input.value);
+    const raw = input.value.trim();
 
-    if (input.value.trim() === '' || !Number.isFinite(value)) {
-      setStatus('Entrez un nombre valide.', 'error');
+    if (!/^\d+$/.test(raw)) {
+      setStatus("L'ID Sellsy ne contient que des chiffres.", 'error');
       input.focus();
       return;
     }
@@ -186,13 +181,13 @@
       const response = await fetch('/api/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number: value })
+        body: JSON.stringify({ sellsy_id: raw })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setStatus(value + ' envoyé.', 'ok');
+        setStatus('Abonnement de l\'auto-école ' + raw + ' envoyé.', 'ok');
         input.value = '';
         input.focus();
       } else {
