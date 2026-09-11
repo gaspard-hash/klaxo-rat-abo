@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Klaxo — Envoi d'un nombre</title>
+<link rel="icon" href="https://klaxo.fr/wp-content/uploads/2026/06/cropped-cropped-logo-klaxo-rond-270x270.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ---- Palette Klaxo : remplacez les 3 hex par ceux du site si besoin ---- */
+  :root {
+    --klaxo-ink:      #12161C;   /* texte, logo noir */
+    --klaxo-accent:   #F5C518;   /* couleur d'action (bouton) */
+    --klaxo-paper:    #FFFFFF;
+    --klaxo-muted:    #6B7280;
+    --klaxo-line:     #E6E8EC;
+    --klaxo-ok:       #0E7C5A;
+    --klaxo-error:    #C0392B;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    font-family: "Manrope", system-ui, -apple-system, sans-serif;
+    color: var(--klaxo-ink);
+    background: var(--klaxo-paper);
+  }
+
+  header {
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--klaxo-line);
+  }
+
+  header img { height: 26px; display: block; }
+
+  main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px 72px;
+  }
+
+  .panel { width: 100%; max-width: 30rem; }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
+  }
+
+  .lede {
+    margin: 0 0 36px;
+    color: var(--klaxo-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    max-width: 34ch;
+  }
+
+  label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--klaxo-muted);
+    margin-bottom: 4px;
+  }
+
+  #number {
+    width: 100%;
+    border: 0;
+    border-bottom: 2px solid var(--klaxo-line);
+    background: transparent;
+    font-family: inherit;
+    font-size: clamp(3rem, 14vw, 4.5rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.04em;
+    color: var(--klaxo-ink);
+    padding: 0 0 8px;
+    border-radius: 0;
+    transition: border-color 120ms ease;
+  }
+
+  #number::placeholder { color: var(--klaxo-line); }
+  #number:focus { outline: none; border-bottom-color: var(--klaxo-accent); }
+  #number:focus-visible { outline: none; }
+
+  /* Pas de flèches natives : le champ est l'élément principal de la page */
+  #number::-webkit-outer-spin-button,
+  #number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  #number { -moz-appearance: textfield; }
+
+  button {
+    margin-top: 28px;
+    width: 100%;
+    padding: 15px 20px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--klaxo-accent);
+    color: var(--klaxo-ink);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 120ms ease;
+  }
+
+  button:hover:not(:disabled) { filter: brightness(0.94); }
+  button:focus-visible { outline: 3px solid var(--klaxo-ink); outline-offset: 2px; }
+  button:disabled { opacity: 0.55; cursor: progress; }
+
+  #status {
+    margin-top: 18px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    min-height: 1.4em;
+  }
+
+  #status.ok    { color: var(--klaxo-ok); }
+  #status.error { color: var(--klaxo-error); }
+
+  footer {
+    padding: 18px 28px;
+    border-top: 1px solid var(--klaxo-line);
+    font-size: 0.8rem;
+    color: var(--klaxo-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="https://klaxo.fr/wp-content/uploads/2022/09/klaxo-logo-noir.png" alt="Klaxo">
+</header>
+
+<main>
+  <div class="panel">
+    <h1>Envoyer un nombre</h1>
+    <p class="lede">Le nombre saisi est transmis au scénario Make de Klaxo.</p>
+
+    <label for="number">Nombre</label>
+    <input id="number" type="number" inputmode="decimal" step="any" placeholder="0" autofocus>
+
+    <button id="send">Envoyer</button>
+    <p id="status" role="status" aria-live="polite"></p>
+  </div>
+</main>
+
+<footer>Outil interne Klaxo</footer>
+
+<script>
+  const input  = document.getElementById('number');
+  const button = document.getElementById('send');
+  const status = document.getElementById('status');
+
+  function setStatus(message, kind) {
+    status.textContent = message;
+    status.className = kind || '';
+  }
+
+  async function send() {
+    const value = Number(input.value);
+
+    if (input.value.trim() === '' || !Number.isFinite(value)) {
+      setStatus('Entrez un nombre valide.', 'error');
+      input.focus();
+      return;
+    }
+
+    button.disabled = true;
+    setStatus('Envoi en cours…');
+
+    try {
+      const response = await fetch('/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number: value })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStatus(value + ' envoyé.', 'ok');
+        input.value = '';
+        input.focus();
+      } else {
+        setStatus(data.error || 'Envoi impossible.', 'error');
+      }
+    } catch (err) {
+      setStatus('Réseau indisponible : ' + err.message, 'error');
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  button.addEventListener('click', send);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+</script>
+
+</body>
+</html>
